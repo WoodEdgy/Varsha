@@ -1,0 +1,9 @@
+{
+  "appId": "com.manikroy.varsha",
+  "appName": "VARSHA",
+  "webDir": "www",
+  "backgroundColor": "#10101c",
+  "android": {
+    "backgroundColor": "#10101c"
+  }
+}

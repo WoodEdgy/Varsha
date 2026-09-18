@@ -1,0 +1,16 @@
+{
+  "name": "varsha-android",
+  "version": "1.0.0",
+  "description": "VARSHA - Vedic Varshaphal Calculator (Android)",
+  "author": "Manik Roy",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build-android": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  }
+}

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VARSHA · Vedic Annual Chart Calculator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#10101c">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="shortcut icon" href="icons/varsha.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--radius:14px}
+html[data-theme="dark"]{--bg:#10101c;--card:#181828;--card2:#1f1f34;--text:#efe6d0;--muted:#a89f8c;--accent:#d4a72c;--accent2:#c1573a;--border:#322c46}
+html[data-theme="light"]{--bg:#f4eede;--card:#fffaf0;--card2:#f1e8d3;--text:#241d12;--muted:#6b5f47;--accent:#b5482f;--accent2:#8a6b12;--border:#e2d6b8}
+html[data-theme="oled"]{--bg:#000;--card:#070707;--card2:#0d0d0d;--text:#f0ead6;--muted:#93897a;--accent:#e8b64c;--accent2:#c1573a;--border:#1e1e1e}
+html[data-theme="hc"]{--bg:#000;--card:#000;--card2:#000;--text:#fff;--accent:#ffe600;--accent2:#ffe600;--muted:#fff;--border:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column;transition:background .25s,color .25s}
+h1,h2,.serif{font-family:'Cormorant Garamond',serif}
+.wrap{max-width:560px;margin:0 auto;width:100%;padding:20px 16px 8px;flex:1}
+header{text-align:center;padding-top:6px}
+header h1{font-size:2rem;font-weight:700;letter-spacing:.5px;color:var(--accent)}
+header p{color:var(--muted);font-size:.85rem;margin-top:4px}
+.chakra{width:34px;height:34px;margin:14px auto;border:2px solid var(--accent2);transform:rotate(45deg);position:relative}
+.chakra:before{content:"";position:absolute;inset:6px;border:1.5px solid var(--accent);transform:rotate(0deg)}
+.themebar{display:flex;justify-content:center;gap:8px;margin:14px 0 22px;flex-wrap:wrap}
+.themebar button{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:20px;padding:6px 14px;font-size:.75rem;cursor:pointer;letter-spacing:.3px}
+.themebar button[aria-pressed="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+#vf-form{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px}
+label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+input{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:11px 12px;font-size:1rem}
+input:focus{outline:2px solid var(--accent)}
+.row{display:flex;gap:10px}
+.row>div{flex:1}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);cursor:pointer;margin:20px 0}
+.check-row input{width:auto}
+.btn-row{display:flex;gap:10px;margin-top:6px}
+button.submit{flex:2;background:linear-gradient(180deg,var(--accent),var(--accent2));color:var(--bg);border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:.4px;box-shadow:0 5px 0 var(--accent2),0 8px 14px rgba(0,0,0,.35);transform:translateY(0);transition:transform .08s,box-shadow .08s}
+button.submit:active{transform:translateY(4px);box-shadow:0 1px 0 var(--accent2),0 2px 6px rgba(0,0,0,.3)}
+button.reset{flex:1;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:.9rem;cursor:pointer;box-shadow:0 4px 0 var(--border);transform:translateY(0);transition:transform .08s,box-shadow .08s}
+button.reset:active{transform:translateY(3px);box-shadow:0 1px 0 var(--border)}
+.hidden{display:none !important}
+.manual-toggle{text-align:right;margin-top:6px}
+.manual-toggle a{color:var(--accent);font-size:.75rem;text-decoration:underline;cursor:pointer}
+#manual-box{display:flex;flex-direction:column;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:6px}
+#loader{text-align:center;color:var(--muted);padding:18px;font-style:italic}
+#err{color:var(--accent2);text-align:center;padding:10px;font-size:.9rem}
+.result{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-top:20px}
+.result h2{color:var(--accent);font-size:1.5rem;text-align:center;margin-bottom:4px}
+.result .sub{text-align:center;color:var(--muted);font-size:.82rem;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.stat{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.stat span{display:block}
+.stat .k{font-size:.68rem;text-transform:uppercase;color:var(--muted);letter-spacing:.3px}
+.stat .v{font-size:1.05rem;font-weight:600;margin-top:3px}
+.report{border-top:1px solid var(--border);padding-top:14px}
+.cat{margin-bottom:14px}
+.cat:last-child{margin-bottom:0}
+.cat h3{font-size:.95rem;color:var(--accent);margin-bottom:4px;font-weight:700}
+.cat p{font-size:.85rem;line-height:1.5;color:var(--text)}
+.export-row{display:flex;gap:10px;margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.export-msg{font-size:.75rem;margin-top:10px;text-align:center;line-height:1.4}
+button.export{flex:1;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:.85rem;cursor:pointer}
+button.export:active{opacity:.8}
+footer{display:flex;align-items:center;justify-content:center;text-align:center;min-height:64px;padding:14px;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border)}
+.build-tag{opacity:.5;font-size:.68rem}
+@media(min-width:600px){.wrap{padding-top:36px}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>VARSHA</h1>
+<p>Vedic Varshaphal Calculator</p>
+</header>
+
+<div class="themebar" role="group" aria-label="Theme selector">
+<button data-theme="light">Light</button>
+<button data-theme="dark">Dark</button>
+<button data-theme="oled">OLED</button>
+<button data-theme="hc">High Contrast</button>
+</div>
+
+<div id="vf-form">
+<div>
+<label for="name">Name</label>
+<input id="name" type="text" placeholder="Your name">
+</div>
+<div class="row">
+<div>
+<label for="date">Birth Date</label>
+<input id="date" type="date">
+</div>
+<div>
+<label for="time">Birth Time</label>
+<input id="time" type="time">
+</div>
+</div>
+<div>
+<label for="citySel">Birth Place</label>
+<select id="citySel">
+<option value="">Select a city…</option>
+<optgroup label="India">
+<option value="New Delhi">New Delhi</option>
+<option value="Mumbai">Mumbai</option>
+<option value="Kolkata">Kolkata</option>
+<option value="Chennai">Chennai</option>
+<option value="Bengaluru">Bengaluru</option>
+<option value="Hyderabad">Hyderabad</option>
+<option value="Pune">Pune</option>
+<option value="Ahmedabad">Ahmedabad</option>
+<option value="Jaipur">Jaipur</option>
+<option value="Lucknow">Lucknow</option>
+<option value="Chandigarh">Chandigarh</option>
+<option value="Bhopal">Bhopal</option>
+<option value="Patna">Patna</option>
+<option value="Guwahati">Guwahati</option>
+<option value="Kochi">Kochi</option>
+<option value="Varanasi">Varanasi</option>
+<option value="Amritsar">Amritsar</option>
+<option value="Nagpur">Nagpur</option>
+<option value="Surat">Surat</option>
+<option value="Indore">Indore</option>
+</optgroup>
+<optgroup label="International">
+<option value="Dubai">Dubai</option>
+<option value="London">London</option>
+<option value="New York">New York</option>
+<option value="Singapore">Singapore</option>
+<option value="Toronto">Toronto</option>
+<option value="Sydney">Sydney</option>
+</optgroup>
+<option value="other">Other (type city name)</option>
+</select>
+<input id="place" type="text" placeholder="Type city name" class="hidden">
+<div class="manual-toggle">
+<a href="javascript:void(0)" id="manual-link">Enter coordinates manually</a>
+</div>
+<div id="manual-box" class="hidden">
+<div class="row">
+<div><label for="lat">Latitude</label><input id="lat" type="number" step="any" placeholder="22.5726"></div>
+<div><label for="lon">Longitude</label><input id="lon" type="number" step="any" placeholder="88.3639"></div>
+</div>
+<label for="tz">Timezone (IANA, e.g. Asia/Kolkata)</label>
+<input id="tz" type="text" placeholder="Asia/Kolkata">
+</div>
+<div>
+<label for="year">Varshaphal Year</label>
+<input id="year" type="number" min="1900" max="2100" placeholder="e.g. 2026">
+</div>
+<label class="check-row"><input type="checkbox" id="save-chk"> Save these birth details on this device</label>
+<div class="btn-row">
+<button class="submit" type="button" id="calc-btn">Calculate Varshaphal</button>
+<button class="reset" type="button" id="reset-btn">Reset</button>
+</div>
+</div>
+
+<div id="loader" class="hidden">Casting the annual chart…</div>
+<div id="err" class="hidden"></div>
+<div id="result" class="result hidden"></div>
+</div>
+
+<footer>
+<p>© Manik Roy <span id="year-now"></span>. All Rights Reserved. <span class="build-tag">v10</span></p>
+</footer>
+
+<script>
+function safeGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function safeSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function safeDel(k){try{localStorage.removeItem(k);}catch(e){}}
+function setTheme(t){document.documentElement.setAttribute("data-theme",t);safeSet("vf-theme",t);
+document.querySelectorAll(".themebar button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.theme===t));}
+document.querySelectorAll(".themebar button").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.theme)));
+setTheme(safeGet("vf-theme")||"dark");
+document.getElementById("year-now").textContent=new Date().getFullYear();
+
+// ---- Astronomy helpers (low-precision, Meeus algorithms) ----
+const RAD=Math.PI/180, DEG=180/Math.PI;
+const norm=d=>((d%360)+360)%360;
+const SIGNS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const LORDS=["Mars","Venus","Mercury","Moon","Sun","Mercury","Venus","Mars","Jupiter","Saturn","Saturn","Jupiter"];
+const CAREER_TXT={"Sun":"As Varsheshwar this year, the Sun places career and professional life firmly under the spotlight, bringing visibility, authority and a genuine test of leadership ability. Recognition, promotion or a step into greater responsibility are all possible, but they tend to follow real, well-owned effort rather than quiet background work, so stepping forward matters more than staying safely out of view. Dealings with superiors, officials or people in positions of power carry extra weight, and pride or ego clashes are the main risk worth managing carefully throughout the year.","Moon":"With the Moon as Varsheshwar, work life is likely to feel more changeable than usual, moving with mood, public sentiment and the needs of the people around you rather than following a fixed, predictable path. Team dynamics, client relationships and even domestic responsibilities may pull attention away from long-term career planning at times. Roles involving care, hospitality, the public, or fluctuating routines tend to suit this influence particularly well, and emotional steadiness will do more for career progress than force or pressure ever could.","Mars":"Mars as Varsheshwar brings a year of drive, initiative and competitive energy to career matters, favouring those willing to act decisively rather than wait for perfect conditions. Progress is genuinely possible, especially in fields that reward courage, physical energy or quick decision-making, but impatience, rivalry or blunt communication with colleagues and superiors can easily create avoidable friction. Channelling this assertive energy into disciplined, well-aimed action rather than reactive conflict will make the difference between real advancement and unnecessary setbacks this year.","Mercury":"With Mercury ruling the year, career opportunities are strongly tied to communication, negotiation, writing, teaching, sales or short travel, and versatility becomes the single most valuable professional asset available. Multiple projects, side ventures or a shift toward more intellectually engaging work are all likely this year, and quick thinking tends to open doors that patience alone would not. The main caution is scattering energy across too many directions at once, so prioritising a few key opportunities will pay off far more than chasing every one.","Jupiter":"Jupiter as Varsheshwar marks a genuinely favourable year for career growth, with promotion, further study, mentorship or an expansion of responsibility all realistically within reach. Opportunities are more likely to arrive through honest reputation, senior guidance or simply being in the right professional circles than through aggressive self-promotion, and taking them seriously rather than assuming continued good fortune will matter. Teaching, advising, law, finance or any field built on trust and expertise are especially well supported under this influence throughout the year.","Venus":"Venus ruling the year brings a smoother, more collaborative tone to career matters, with creativity, diplomacy and pleasant working relationships doing much of the heavy lifting behind professional progress. Partnerships, client relationships and anything involving aesthetics, design, hospitality or the arts are particularly favoured, and doors often open through personal connection rather than pure competition. The risk this year is coasting on charm alone rather than backing it with substance, so pairing likeability with genuine follow-through will secure lasting rather than temporary gains.","Saturn":"With Saturn as Varsheshwar, career growth this year is likely to be slower and more effortful than exciting, built through discipline, patience and a willingness to take on unglamorous responsibility rather than shortcuts or quick wins. Long-established institutions, structured fields or roles demanding consistency and endurance tend to suit this influence well, and results may take longer to show than hoped. What is built this year, however, tends to be genuinely durable, rewarding steady, unspectacular effort with real long-term professional standing."};
+const FINANCE_TXT={"Sun":"Financial matters this year are closely linked to authority, recognition and reputation, with the Sun as Varsheshwar suggesting that income is tied to position, government dealings or the approval of people who hold power over resources. There may be gains through official channels, inheritance, or a role that carries public status, though expenses connected to maintaining appearances or standing can also rise noticeably. Generosity is favoured over hoarding, and financial confidence should be paired with humility to avoid unnecessary conflict over money or shared resources this year.","Moon":"With the Moon ruling the year, income and expenses are likely to fluctuate along with mood, circumstance and the needs of family, making financial security feel closely tied to home life rather than purely to work. Gains may come through property, food-related trades, care work or dealings connected to women and the public, though impulsive spending during emotional moments is a real risk to watch. Building a simple savings habit and avoiding decisions made purely on feeling will keep finances steadier through an otherwise variable year.","Mars":"Mars as Varsheshwar often brings money that arrives and departs quickly, through bold decisions, competitive ventures, property dealings or sudden, urgent expenses rather than slow, steady accumulation. There is real potential for gain through courage, technical skill or fast-moving opportunities, but impulsive purchases, disputes over money, or unnecessary financial risks taken in the heat of the moment can undo progress just as fast. A deliberate pause before large financial decisions will protect against the impatience this influence tends to encourage.","Mercury":"With Mercury ruling the year, finances are shaped by trade, contracts, side income, writing, consulting or clever negotiation, and attentiveness to fine print and detail becomes unusually important for protecting what is earned. Multiple small income streams are more likely than one large windfall, and this can work strongly in your favour if tracked carefully rather than left disorganised. The main financial risk this year is careless paperwork, minor miscalculations or scattered spending, all of which are avoidable with a little consistent attention.","Jupiter":"Jupiter as Varsheshwar is traditionally one of the most favourable placements for finances, bringing growth, good advice and genuine opportunities for those willing to act with patience and ethical dealing rather than shortcuts. Gains through education, advisory work, investments guided by trusted counsel, or simply steady, well-planned growth are all likely this year. The main caution is overconfidence or overspending born from optimism, so channelling this generous energy into sound long-term decisions will make the most of an otherwise generous financial year.","Venus":"With Venus ruling the year, money matters tend to flow more easily than usual, often through creative work, partnerships, beauty, hospitality or simply pleasant, well-timed opportunities rather than hard struggle. Spending on comfort, relationships or aesthetic pleasures is likely to rise, and this can be genuinely rewarding provided it stays within sensible limits rather than sliding into indulgence. Shared finances, joint ventures or income through a partner are also highlighted, making cooperation more financially productive than going it entirely alone this year.","Saturn":"Saturn as Varsheshwar suggests that financial gains this year will come slowly and require real discipline, with saving, budgeting and long-term planning proving far more rewarding than speculation or quick schemes. Delays, unexpected expenses or a general sense of financial tightness are possible, especially early in the year, but consistent, unglamorous effort tends to build something genuinely stable by the end of it. Avoiding debt, resisting shortcuts and respecting the slow pace this influence demands will protect against real financial strain."};
+const HEALTH_TXT={"Sun":"Vitality is generally strong this year with the Sun as Varsheshwar, bringing energy, confidence and resilience, though stress connected to overexertion, pride or an unwillingness to slow down should be watched carefully throughout the months ahead. The head, eyes, heart and overall circulation deserve particular attention, and burnout from taking on too much responsibility at once is a real possibility. Balanced rest, regular check-ups and a willingness to ask for help rather than pushing through alone will protect health far better than sheer willpower.","Moon":"With the Moon ruling the year, health is closely tied to emotional wellbeing, sleep quality and overall nervous system balance, making rest and routine more important than they might first appear. Digestive issues, fluctuating energy levels and stress-related concerns are the most likely areas needing attention, often rising and falling with mood or circumstance rather than following a predictable pattern. Prioritising consistent sleep, gentle emotional outlets and steady daily rhythms will do more for physical health this year than any single dramatic change.","Mars":"Mars as Varsheshwar brings high energy and physical drive, but this is also a year to guard carefully against injuries, inflammation, overheating, cuts or accidents that arise from impatience or rushing through tasks. Sudden bursts of activity followed by exhaustion are common under this influence, and anger or frustration held in the body can show up as tension or minor but persistent physical complaints. Regular, moderate exercise channelled deliberately rather than in sporadic bursts will help convert this fiery energy into genuine vitality.","Mercury":"With Mercury ruling the year, health matters are often nervous, mental or stress-related in nature, showing up as restlessness, overthinking, insomnia or minor but persistent complaints connected to the nervous system rather than serious physical illness. Respiratory issues, skin sensitivity or communication-related strain, such as voice or throat concerns, are also worth watching. Grounding daily routines, time away from screens and constant mental stimulation, and simple breathing practices will help balance the quick, restless energy this influence tends to bring.","Jupiter":"Health is generally well supported this year with Jupiter as Varsheshwar, bringing resilience, good recovery and an overall sense of vitality, though moderation with food, weight and general overindulgence deserves ongoing, honest attention. The liver, blood sugar balance and overall metabolic health are worth keeping an eye on, particularly if celebrations or comfortable circumstances encourage excess. A generally optimistic outlook supports genuine healing this year, provided it is paired with sensible habits rather than an assumption that good fortune alone will carry health along.","Venus":"With Venus ruling the year, health tends to remain generally stable, though comfort-seeking habits, rich food, sedentary routines and reproductive or kidney-related matters are worth mindful, moderate attention rather than neglect. Skin, hormonal balance and overall sense of physical wellbeing are closely tied to emotional satisfaction under this influence, so unresolved relationship stress can show up physically more than expected. Gentle movement, balanced indulgence and attention to genuine self-care rather than pure pleasure-seeking will keep this generally favourable health period on track.","Saturn":"Saturn as Varsheshwar often brings health effects that build slowly rather than arriving suddenly, showing up through chronic concerns, joint or bone issues, fatigue or a general sense of heaviness that responds best to consistent, patient care. This is not usually a year of dramatic illness but rather one where old neglect or ongoing strain quietly demands attention and can no longer be postponed. Regular rest, sensible pacing, and treating minor recurring symptoms seriously rather than dismissing them will prevent smaller issues from becoming larger ones."};
+const FAMILY_TXT={"Sun":"With the Sun as Varsheshwar, family and home life this year carry a strong undertone of authority and responsibility, often placing you or a senior family member in a position of visible leadership within the household. Father figures, family reputation and questions of respect or hierarchy at home are likely to feature prominently, and pride on either side can create friction if not tempered with genuine listening. Taking ownership of family responsibilities with warmth rather than rigid control will strengthen bonds far more effectively than insisting on authority alone.","Moon":"Family and home matters take on particular emotional weight this year with the Moon ruling the Varshaphal, making domestic comfort, close bonds with mother figures, and a genuine sense of belonging unusually important themes throughout the months ahead. Moving house, renovations, or simply spending more time nurturing the home environment are all likely under this influence. Emotional sensitivity within the family runs high, so patience and gentle communication will do far more good than trying to resolve tensions through logic or force alone.","Mars":"With Mars as Varsheshwar, family and home life may see moments of real friction, quick tempers or disagreements that flare up suddenly and just as suddenly pass, often connected to property, shared space or differing opinions about how things should be run. Renovation, physical improvements to the home, or defending family interests assertively are also likely themes this year. Choosing patience over confrontation in heated moments, and channelling protective instincts constructively rather than combatively, will keep domestic peace largely intact.","Mercury":"Mercury ruling the year brings a livelier, more communicative atmosphere to family and home life, with siblings, cousins, neighbours and everyday conversation playing a larger role than usual in domestic matters. Short trips connected to family, paperwork related to property, or simply a busier household schedule are all likely this year. Misunderstandings can arise quickly under this quick-moving influence, so clear, direct communication rather than assumptions will prevent minor family disagreements from growing into something more serious than they need to be.","Jupiter":"With Jupiter as Varsheshwar, family and home life are generally blessed this year, often bringing good news, growth, a sense of abundance, or the guidance of an elder or mentor figure within the household. This can be a favourable period for expanding the family, welcoming guests, celebrating milestones, or simply enjoying a genuine sense of harmony and generosity at home. The main caution is overextending hospitality or finances in the name of generosity, so enjoying this warmth while staying mindful of practical limits will serve the family best.","Venus":"Venus ruling the year brings comfort, beauty and genuine affection into family and home life, favouring redecoration, gatherings, celebrations and simply a more pleasant, harmonious domestic atmosphere than usual. Relationships with family members are likely to feel warmer and more cooperative, and shared enjoyment of food, art or comfort strengthens bonds considerably this year. The risk lies in overspending on home comforts or avoiding necessary difficult conversations in favour of surface harmony, so genuine connection should be paired with honest communication when needed.","Saturn":"With Saturn as Varsheshwar, family and home matters may carry a heavier, more serious tone this year, often involving responsibility toward elders, long-postponed repairs, or simply a sense that domestic duties require real patience and consistent effort rather than quick fixes. Distance, whether emotional or physical, from certain family members is possible, and old, unresolved tensions may resurface demanding attention. Approaching these responsibilities steadily, without resentment, and honouring commitments to family even when they feel burdensome will build lasting respect and stability over time."};
+const RELATIONSHIP_TXT=["Muntha in Aries brings a push toward independence, new connections and a bolder approach to romance and friendship, with fresh people and situations entering your circle more readily than usual this year. Impatience or a competitive streak can sometimes test close relationships, particularly if partners feel rushed or overlooked in the pursuit of personal goals. Being direct about needs while genuinely making space to listen, rather than assuming others will simply keep pace, will turn this energetic year into one of real relational growth.","With Muntha in Taurus, relationships this year are coloured by comfort, loyalty and a strong preference for steady, familiar companionship over excitement or novelty. Existing bonds are likely to deepen through shared routines, small pleasures and genuine reliability rather than grand gestures, and this can be a particularly stabilising year for long-term partnerships. The main risk is stubbornness or resistance to necessary change within a relationship, so staying open to gentle compromise will keep this steady, affectionate energy from tipping into rigidity.","Muntha in Gemini widens social circles considerably this year, bringing lively conversation, new acquaintances and a genuine curiosity about the people around you that makes connection feel easy and engaging. Communication becomes the heart of every important relationship, for better or worse, and misunderstandings are just as likely as breakthroughs if messages are rushed or left ambiguous. Consistency in close relationships may need extra conscious effort under this changeable influence, so following through on words with genuine presence will matter more than usual.","With Muntha in Cancer, family bonds and emotional closeness take clear priority this year, and home life is likely to play an especially important role in overall happiness and sense of security. Relationships deepen through vulnerability, nurturing and simply spending unhurried time together rather than through activity or achievement. Moodiness or a tendency to withdraw when hurt can create distance if left unaddressed, so expressing feelings openly rather than expecting others to simply sense them will strengthen bonds considerably through the year.","Muntha in Leo brings warmth, romance and a genuine desire for self-expression into relationships this year, along with a real wish to be seen, appreciated and admired by those closest to you. This can be a wonderfully affectionate period for romantic partnerships, creative collaboration and simply enjoying being generous with love. The risk lies in pride or a need for constant validation overshadowing genuine reciprocity, so making sure attention flows both ways will keep this warm, expressive energy healthy rather than one-sided.","With Muntha in Virgo, relationships are strengthened this year through being genuinely useful to others, with small, consistent acts of care and practical support meaning more than grand romantic gestures ever could. Attention to detail, thoughtful help and quiet reliability tend to deepen trust considerably during this period. The main caution is excessive criticism, either of yourself or others, which can quietly erode closeness if left unchecked, so pairing helpfulness with genuine acceptance will make this a rewarding year for relationships.","Muntha in Libra places partnerships and fairness firmly at the centre of this year's relationship themes, with harmony, balance and genuine cooperation actively sought in both romantic and platonic connections. This can be a favourable period for commitment, marriage-related matters, or simply resolving long-standing relational imbalances through honest, diplomatic conversation. Indecisiveness or a tendency to avoid necessary conflict in the name of peace is the main risk, so addressing tension directly, even when uncomfortable, will lead to more lasting harmony than avoidance.","With Muntha in Scorpio, relationships may deepen intensely or face significant transformation this year, with trust emerging as the defining issue across both romantic and close personal connections. Superficial bonds are less likely to satisfy during this period, while genuine intimacy, honesty and emotional depth are strongly favoured, even when they require difficult conversations. Jealousy, secrecy or power struggles can surface if trust feels threatened, so choosing vulnerability over control will allow this intense, transformative energy to strengthen rather than strain important bonds.","Muntha in Sagittarius brings a strong emphasis on freedom, honesty and shared beliefs within relationships this year, with connections benefiting considerably from travel, learning or new experiences shared together rather than routine alone. Optimism and generosity of spirit make this a genuinely favourable period for both new romance and renewing existing bonds through adventure. The main risk is bluntness or overpromising more freedom or commitment than can realistically be honoured, so matching enthusiasm with follow-through will keep trust intact throughout the year.","With Muntha in Capricorn, relationships this year are built more on commitment, responsibility and reliability than on excitement or spontaneity, favouring partnerships that can withstand real-world pressures and long-term planning together. This can be a particularly meaningful period for formalising commitments, whether through marriage, cohabitation or simply deepening mutual responsibility. Emotional reserve or excessive focus on practical matters can create distance if unchecked, so making deliberate space for warmth alongside duty will keep this steady, serious energy genuinely nourishing rather than cold.","Muntha in Aquarius emphasises friendship, independence and community this year, with unconventional connections, group activities and shared causes playing a bigger role in relationship satisfaction than one-on-one intensity alone. Existing partnerships benefit from treating each other as genuine equals and allies rather than through traditional roles or expectations. Emotional detachment or a reluctance to engage with deeper feelings is the main risk under this influence, so balancing independence with genuine emotional presence will keep connections both freeing and truly fulfilling this year.","With Muntha in Pisces, relationships this year are marked by compassion, sensitivity and a deep need for genuine emotional connection, often blurring boundaries between self and other in ways that can be either beautifully intimate or quietly draining. Empathy runs high, making this a favourable period for healing old relational wounds and offering forgiveness where it is genuinely due. Healthy boundaries are worth watching carefully, since over-giving or idealising others can lead to disappointment, so grounded compassion will serve better than self-sacrifice."];
+const EDU_TRAVEL_TXT={"Aries":"With the Sun in Aries this year, learning and travel are approached with energy, urgency and a competitive edge, favouring short, intensive courses, quick decisions about new ventures, and a willingness to dive into unfamiliar subjects headfirst rather than cautiously testing the water. Spontaneous trips, new skills learned through direct experience, and a generally bold approach to expanding horizons are all likely. Impatience with slow-paced study or long-term programs is the main risk, so pairing enthusiasm with enough follow-through to actually finish what is started will matter.","Taurus":"Sun in Taurus this year brings a practical, steady approach to education and travel, favouring courses or trips that offer tangible, lasting value rather than novelty for its own sake, such as skills tied to craft, finance or the natural world. Comfort and familiarity matter more than adventure under this influence, so well-planned journeys to trusted destinations are more likely than spontaneous exploration. Patience pays off considerably in study this year, though resistance to new methods or ideas is worth watching, since flexibility will deepen learning further.","Gemini":"With the Sun in Gemini, this is a genuinely favourable year for learning, writing, short courses and frequent, varied travel, since curiosity and mental agility are especially strong and eager for new input of all kinds. Multiple subjects or interests pursued simultaneously are likely, and this can work wonderfully provided attention does not scatter too thin across too many directions at once. Short trips, local exploration and constant intellectual stimulation suit this energy far better than long, singular commitments to one destination or subject.","Cancer":"Sun in Cancer this year draws learning and travel back toward emotional meaning and connection to roots, favouring subjects tied to history, family, psychology or care, and trips made to visit family or revisit meaningful places from the past. Comfort and a sense of safety matter considerably before new ventures feel appealing, so easing gently into unfamiliar territory works better than being pushed. Homesickness during travel is common under this influence, so building in familiar comforts will make new experiences considerably easier to embrace.","Leo":"With the Sun in Leo, education and travel this year are approached with confidence, enthusiasm and a genuine desire to shine, favouring creative fields, performance, leadership training or travel to vibrant, memorable destinations worth talking about afterward. Learning is most successful when it feels personally meaningful and allows for genuine self-expression rather than dry, impersonal study. Pride can make admitting gaps in knowledge difficult, so approaching new subjects with humility alongside natural confidence will accelerate real growth considerably this year.","Virgo":"Sun in Virgo this year brings a careful, detail-oriented approach to learning and travel, favouring well-researched courses, practical skills and thoroughly planned trips over spontaneous adventure or vague, unfocused study. Precision, organisation and genuine mastery of a subject matter more than breadth this year, making this an excellent period for deepening existing expertise rather than starting entirely new pursuits. Perfectionism or excessive self-criticism can slow progress if left unchecked, so allowing room for honest mistakes will keep learning genuinely productive rather than paralysing.","Libra":"With the Sun in Libra, education and travel this year are enriched considerably by partnership, favouring courses studied alongside others, collaborative projects, or trips taken with a companion rather than pursued entirely alone. Subjects tied to law, diplomacy, art or relationships are especially well supported, and balanced, fair-minded thinking makes complex ideas easier to grasp. Indecisiveness about which path to pursue is the main risk under this influence, so trusting instinct enough to commit to one direction will bring far better results than endless comparison.","Scorpio":"Sun in Scorpio this year draws learning and travel toward depth, research and genuine transformation, favouring subjects that investigate what lies beneath the surface, such as psychology, investigation, healing or any field requiring real intensity of focus. Travel connected to significant personal change, or study pursued with real emotional investment rather than casual interest, suits this influence particularly well. Secretiveness or reluctance to seek help when genuinely needed can slow progress, so allowing trusted mentors or guides in will deepen this transformative learning considerably.","Sagittarius":"With the Sun in Sagittarius, this is a naturally favourable year for higher education, philosophy, long-distance travel and any pursuit that broadens perspective and understanding of the wider world beyond familiar boundaries. Genuine opportunities for meaningful journeys, whether physical or intellectual, are likely, and optimism makes new subjects feel exciting rather than daunting. Overconfidence or promising more expertise than actually possessed is worth watching, so grounding enthusiasm in genuine follow-through will make the most of this expansive, growth-oriented influence throughout the year.","Capricorn":"Sun in Capricorn this year brings a disciplined, long-term approach to education and travel, favouring structured programs, professional qualifications or trips connected to career and status rather than pure leisure or spontaneous exploration. Patience and consistent effort over time matter considerably more than quick results, making this an excellent year for building genuine, lasting expertise rather than chasing shortcuts. Rigidity or excessive seriousness can make learning feel like a burden, so allowing occasional lightness will keep motivation genuinely sustainable through a demanding year.","Aquarius":"With the Sun in Aquarius, learning and travel this year lean toward the unconventional, favouring group study, online communities, technology, or destinations and subjects that break from tradition and connect you to like-minded people and forward-thinking ideas. Independent thinking and genuine curiosity about new concepts make this an intellectually exciting year, provided restlessness does not prevent seeing any single pursuit through to completion. Detachment from peers who value different approaches is worth watching, since genuine collaboration will enrich this innovative energy further.","Pisces":"Sun in Pisces this year draws learning and travel toward intuition, imagination and spiritual or artistic subjects, favouring studies in music, art, healing or philosophy, and journeys that feel emotionally or spiritually meaningful rather than purely practical. Boundaries around time and commitment can blur easily under this dreamy influence, so gentle structure will help translate genuine inspiration into completed courses or fulfilling trips rather than vague, unrealised intentions. Trusting intuition about which paths feel right will serve this reflective, imaginative year particularly well."};
+const SPIRIT_TXT={"Aries":"With the Varshaphal Lagna in Aries, the inner and spiritual life this year is approached directly and energetically, favouring active practices such as movement-based meditation, martial disciplines or bold personal challenges over quiet, passive reflection. Courage to confront personal fears or bad habits head-on is a genuine spiritual strength available this year, though impatience with slow inner growth can lead to frustration if progress does not feel immediate. Channelling this fiery energy into consistent, disciplined practice rather than sporadic bursts of intensity will bring the deepest, most lasting growth.","Taurus":"With the Lagna in Taurus, spiritual growth this year is approached through steady, embodied practice, favouring grounding rituals, time in nature, or simply cultivating patience and gratitude for what already exists rather than restless searching for something new. Comfort with stillness and a genuine appreciation for simple pleasures can deepen inner peace considerably under this influence. Resistance to change or attachment to material security can slow spiritual expansion if left unexamined, so gently questioning what truly brings lasting contentment will support real growth this year.","Gemini":"With the Lagna in Gemini, the inner life this year is explored through curiosity, study and conversation, favouring reading, discussion groups or simply asking honest questions about meaning and purpose rather than committing to a single, fixed spiritual path. Mental engagement with philosophy or varied traditions can bring genuine insight, though scattering attention across too many ideas without depth is a real risk. Choosing to sit with a few core questions rather than constantly seeking new ones will bring more lasting clarity this year.","Cancer":"With the Lagna in Cancer, spiritual and inner growth this year is deeply connected to home, family and emotional healing, favouring practices that process old feelings, honour ancestry, or simply create a genuinely safe inner and outer space for reflection. Intuition runs strong under this influence, and quiet, private practice often feels more meaningful than public or communal spirituality. Old emotional wounds may surface for healing, and approaching them with patience and self-compassion rather than avoidance will bring considerable inner peace by year's end.","Leo":"With the Lagna in Leo, the inner life this year is approached with genuine warmth, creativity and a wish for personal meaning to be expressed openly rather than kept entirely private, favouring practices connected to creative expression, leadership in service of others, or simply generous self-reflection. Confidence in one's own inner voice grows considerably under this influence. Pride or a need for spiritual growth to be recognised by others can distort genuine practice, so cultivating humility alongside authentic self-expression will deepen this year's inner journey.","Virgo":"With the Lagna in Virgo, spiritual growth this year is approached through discipline, service and careful daily practice, favouring routines such as regular meditation, mindful health habits, or genuinely useful acts of service to others as pathways to deeper meaning. Attention to small, consistent improvements brings real inner transformation under this influence, more than any single dramatic breakthrough. Excessive self-criticism or perfectionism about spiritual progress can become its own obstacle, so treating inner growth with the same patience offered to others will help considerably.","Libra":"With the Lagna in Libra, the inner life this year is explored through balance, relationship and a genuine search for fairness and harmony, both within oneself and with others, favouring practices done in partnership or community rather than pursued in isolation. Beauty, art and aesthetic experience can also serve as genuine spiritual doorways under this influence. Indecisiveness about which spiritual path feels right, or excessive dependence on others' approval, is worth watching, so trusting inner judgement will bring more authentic peace than constant external validation.","Scorpio":"With the Lagna in Scorpio, spiritual growth this year is intense and transformative, favouring deep shadow work, honest confrontation with fear, loss or hidden motivations, and practices that genuinely go beneath the surface rather than offering easy comfort. This can be a profoundly meaningful year for real psychological and spiritual transformation, provided the intensity is met with courage rather than avoidance. Secrecy or excessive control over the process can limit growth, so allowing trusted guidance in during difficult passages will support genuine healing considerably.","Sagittarius":"With the Lagna in Sagittarius, the inner life this year is naturally expansive, favouring philosophy, formal spiritual study, travel to meaningful places, or simply a genuine, optimistic search for larger meaning and truth beyond familiar boundaries. This is traditionally a favourable placement for real spiritual growth and a broadening of personal belief systems. Overconfidence in having found definitive answers, or dismissing other perspectives too quickly, is worth watching, so staying genuinely open to further learning will deepen this expansive, growth-oriented year considerably.","Capricorn":"With the Lagna in Capricorn, spiritual growth this year is approached seriously and patiently, favouring structured practice, traditional disciplines, or simply the quiet, consistent discipline of showing up for inner work even when it feels unrewarding in the moment. Real, durable transformation is genuinely possible under this influence, built slowly rather than through sudden breakthroughs. Rigidity or treating spiritual growth as another duty to be checked off can drain genuine meaning from the process, so allowing warmth alongside discipline will help considerably.","Aquarius":"With the Lagna in Aquarius, the inner life this year is explored through community, unconventional practice and genuine intellectual freedom, favouring group meditation, humanitarian service, or simply questioning inherited beliefs in favour of a more personally authentic spiritual path. Detachment and objectivity can bring real clarity under this influence, though emotional distance from the process itself is worth watching. Allowing genuine feeling alongside intellectual understanding, rather than staying purely in the mind, will bring considerably deeper and more embodied spiritual growth this year.","Pisces":"With the Lagna in Pisces, spiritual growth this year is naturally strong, favouring meditation, artistic expression, compassionate service, or simply surrendering to a deeper sense of connection beyond the purely rational or material. Intuition and empathy run especially high under this influence, making this a genuinely favourable year for healing, forgiveness and spiritual practice of almost any kind. Boundaries between self and others, or between genuine spirituality and escapism, are worth watching carefully, so grounding this sensitive energy in daily practice will bring lasting, rather than fleeting, peace."};
+
+function buildCategories(sunSign,ascSign,varsheshwar,munthaSign,munthaLord,age){
+return [
+["Career & Work",CAREER_TXT[varsheshwar]],
+["Finance & Wealth",FINANCE_TXT[varsheshwar]],
+["Health & Wellbeing",HEALTH_TXT[varsheshwar]],
+["Family & Home",FAMILY_TXT[varsheshwar]],
+["Relationships & Love",RELATIONSHIP_TXT[SIGNS.indexOf(munthaSign)]],
+["Education & Travel",EDU_TRAVEL_TXT[sunSign]],
+["Spiritual Growth",SPIRIT_TXT[ascSign]]
+];
+}
+function catsToHTML(cats){
+return cats.map(c=>`<div class="cat"><h3>${c[0]}</h3><p>${c[1]}</p></div>`).join("");
+}
+
+function toJD(y,m,d,h){if(m<=2){y--;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+h/24+B-1524.5;}
+
+function jdToDate(jd){ // returns JS Date in UTC
+return new Date((jd-2440587.5)*86400000);}
+
+function sunLongitude(jd){const T=(jd-2451545)/36525;
+const L0=norm(280.46646+36000.76983*T+0.0003032*T*T);
+const M=norm(357.52911+35999.05029*T-0.0001537*T*T),Mr=M*RAD;
+const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)+(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+const trueLong=norm(L0+C);
+const Om=norm(125.04-1934.136*T);
+return norm(trueLong-0.00569-0.00478*Math.sin(Om*RAD));}
+
+function obliquity(T){return 23.439291-0.0130042*T-1.64e-7*T*T+5.04e-7*T*T*T;}
+
+function ayanamsa(jd){const year=2000+(jd-2451545)/365.25;return 23.85+0.013972*(year-2000);}
+
+function ascendant(jd,lat,lonE){const T=(jd-2451545)/36525;
+const gmst=norm(280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T-(T*T*T)/38710000);
+const ramc=norm(gmst+lonE)*RAD;
+const eps=obliquity(T)*RAD, latR=lat*RAD;
+const y=Math.cos(ramc);
+const x=-(Math.sin(eps)*Math.tan(latR)+Math.cos(eps)*Math.sin(ramc));
+return norm(Math.atan2(y,x)*DEG);}
+
+function findSolarReturn(natalSidLon,year,month,day){let jd=toJD(year,month,day,12);
+for(let i=0;i<10;i++){const sid=norm(sunLongitude(jd)-ayanamsa(jd));
+let diff=norm(natalSidLon-sid);if(diff>180)diff-=360;
+jd+=diff/0.9856;}
+return jd;}
+
+function signOf(lon){return SIGNS[Math.floor(norm(lon)/30)];}
+function degInSign(lon){return (norm(lon)%30).toFixed(2);}
+
+function getOffsetMinutes(naiveUTC,timeZone){
+const tzStr=naiveUTC.toLocaleString("en-US",{timeZone});
+const utcStr=naiveUTC.toLocaleString("en-US",{timeZone:"UTC"});
+return (new Date(tzStr)-new Date(utcStr))/60000;}
+
+function fmtDT(date,timeZone){
+return date.toLocaleString("en-IN",{timeZone,weekday:"short",year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});}
+
+// ---- Form handling ----
+const CITY_DB={
+"New Delhi":[28.6139,77.2090,"Asia/Kolkata"],"Mumbai":[19.0760,72.8777,"Asia/Kolkata"],
+"Kolkata":[22.5726,88.3639,"Asia/Kolkata"],"Chennai":[13.0827,80.2707,"Asia/Kolkata"],
+"Bengaluru":[12.9716,77.5946,"Asia/Kolkata"],"Hyderabad":[17.3850,78.4867,"Asia/Kolkata"],
+"Pune":[18.5204,73.8567,"Asia/Kolkata"],"Ahmedabad":[23.0225,72.5714,"Asia/Kolkata"],
+"Jaipur":[26.9124,75.7873,"Asia/Kolkata"],"Lucknow":[26.8467,80.9462,"Asia/Kolkata"],
+"Chandigarh":[30.7333,76.7794,"Asia/Kolkata"],"Bhopal":[23.2599,77.4126,"Asia/Kolkata"],
+"Patna":[25.5941,85.1376,"Asia/Kolkata"],"Guwahati":[26.1445,91.7362,"Asia/Kolkata"],
+"Kochi":[9.9312,76.2673,"Asia/Kolkata"],"Varanasi":[25.3176,82.9739,"Asia/Kolkata"],
+"Amritsar":[31.6340,74.8723,"Asia/Kolkata"],"Nagpur":[21.1458,79.0882,"Asia/Kolkata"],
+"Surat":[21.1702,72.8311,"Asia/Kolkata"],"Indore":[22.7196,75.8577,"Asia/Kolkata"],
+"Dubai":[25.2048,55.2708,"Asia/Dubai"],"London":[51.5072,-0.1276,"Europe/London"],
+"New York":[40.7128,-74.0060,"America/New_York"],"Singapore":[1.3521,103.8198,"Asia/Singapore"],
+"Toronto":[43.6532,-79.3832,"America/Toronto"],"Sydney":[-33.8688,151.2093,"Australia/Sydney"]};
+document.getElementById("citySel").addEventListener("change",(e)=>{
+document.getElementById("place").classList.toggle("hidden",e.target.value!=="other");});
+
+document.getElementById("manual-link").addEventListener("click",()=>{
+document.getElementById("manual-box").classList.toggle("hidden");});
+
+const BIRTH_FIELDS=["name","date","time","citySel","place","lat","lon","tz"];
+function saveBirthDetails(){
+const data={};
+BIRTH_FIELDS.forEach(id=>data[id]=document.getElementById(id).value);
+safeSet("vf-birth",JSON.stringify(data));}
+function loadBirthDetails(){
+const raw=safeGet("vf-birth");if(!raw)return;
+try{
+const data=JSON.parse(raw);
+BIRTH_FIELDS.forEach(id=>{if(data[id]!==undefined)document.getElementById(id).value=data[id];});
+document.getElementById("place").classList.toggle("hidden",document.getElementById("citySel").value!=="other");
+if(data.lat && data.lon && data.tz) document.getElementById("manual-box").classList.remove("hidden");
+document.getElementById("save-chk").checked=true;
+}catch(e){}}
+loadBirthDetails();
+
+let lastReport=null;
+function buildPlainText(r){
+let out=`${r.name}'s Varshaphal ${r.vfYear}\n${r.placeLabel} · Age completing ${r.age}\n${"=".repeat(40)}\n\n`;
+out+=`Solar Return Moment: ${r.srMomentStr}\nVarshaphal Lagna: ${r.ascStr}\nVarsheshwar (Year Lord): ${r.varsheshwar}\nMuntha: ${r.munthaSign} (${r.munthaLord})\n\n`;
+r.cats.forEach(c=>{out+=`${c[0]}\n${"-".repeat(c[0].length)}\n${c[1]}\n\n`;});
+out+=`© Manik Roy ${new Date().getFullYear()}. All Rights Reserved.\n`;
+return out;}
+function showExportMsg(msg,isError){
+let m=document.getElementById("export-msg");
+if(!m){m=document.createElement("p");m.id="export-msg";m.className="export-msg";document.querySelector(".export-row").after(m);}
+m.textContent=msg;m.style.color=isError?"var(--accent2)":"var(--muted)";}
+
+function triggerBlobDownload(blob,filename){
+try{
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+a.href=url;a.download=filename;a.style.display="none";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(()=>URL.revokeObjectURL(url),2000);
+showExportMsg(`Saved ${filename}. If you don't see it, check your browser's Downloads list (often in the browser menu, not the phone's Files app).`,false);
+}catch(e){
+try{
+const url=URL.createObjectURL(blob);
+window.open(url,"_blank");
+showExportMsg("Direct download was blocked, so the file was opened in a new tab — use your browser's save/share option there.",true);
+}catch(e2){showExportMsg("This browser doesn't support saving files this way. Try a different browser (Chrome or Safari).",true);}
+}}
+
+async function shareOrSave(blob,filename,mimeType){
+try{
+const file=new File([blob],filename,{type:mimeType});
+if(navigator.canShare && navigator.canShare({files:[file]})){
+await navigator.share({files:[file],title:filename});
+showExportMsg(`Ready — choose "Save to Files", Drive, or similar from the share menu.`,false);
+return;
+}
+}catch(e){
+if(e && e.name==="AbortError"){showExportMsg("Share cancelled.",false);return;}
+}
+triggerBlobDownload(blob,filename);}
+
+function downloadTXT(){
+const btn=document.getElementById("txt-btn");
+if(btn){const orig=btn.textContent;btn.textContent="Working…";setTimeout(()=>{btn.textContent=orig;},2500);}
+showExportMsg("Preparing TXT file…",false);
+if(!lastReport){showExportMsg("No report generated yet — calculate a Varshaphal first.",true);return;}
+try{
+const blob=new Blob([buildPlainText(lastReport)],{type:"text/plain"});
+shareOrSave(blob,`Varshaphal_${lastReport.name.replace(/\s+/g,"_")}_${lastReport.vfYear}.txt`,"text/plain")
+.catch(e=>showExportMsg("Couldn't save the TXT file: "+e.message,true));
+}catch(e){showExportMsg("Couldn't save the TXT file: "+e.message,true);}}
+
+function downloadPDF(){
+const btn=document.getElementById("pdf-btn");
+if(btn){const orig=btn.textContent;btn.textContent="Working…";setTimeout(()=>{btn.textContent=orig;},2500);}
+showExportMsg("Preparing PDF file…",false);
+if(!lastReport)return;
+if(!(window.jspdf&&window.jspdf.jsPDF)){
+showExportMsg("PDF library failed to load (needs an internet connection the first time). Try again, or use Save as TXT.",true);
+return;}
+try{
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+const w=180,left=15;let y=20;
+const pageH=280;
+function addLine(text,size,bold,gap){
+doc.setFontSize(size);doc.setFont(undefined,bold?"bold":"normal");
+const lines=doc.splitTextToSize(text,w);
+lines.forEach(ln=>{if(y>pageH){doc.addPage();y=20;}doc.text(ln,left,y);y+=size*0.5;});
+y+=gap||4;}
+addLine(`${lastReport.name}'s Varshaphal ${lastReport.vfYear}`,16,true,2);
+addLine(`${lastReport.placeLabel} · Age completing ${lastReport.age}`,10,false,6);
+addLine(`Solar Return Moment: ${lastReport.srMomentStr}`,10,false,1);
+addLine(`Varshaphal Lagna: ${lastReport.ascStr}`,10,false,1);
+addLine(`Varsheshwar (Year Lord): ${lastReport.varsheshwar}`,10,false,1);
+addLine(`Muntha: ${lastReport.munthaSign} (${lastReport.munthaLord})`,10,false,8);
+lastReport.cats.forEach(c=>{addLine(c[0],12,true,2);addLine(c[1],10,false,6);});
+addLine(`© Manik Roy ${new Date().getFullYear()}. All Rights Reserved.`,8,false,0);
+const filename=`Varshaphal_${lastReport.name.replace(/\s+/g,"_")}_${lastReport.vfYear}.pdf`;
+try{
+const blob=doc.output("blob");
+shareOrSave(blob,filename,"application/pdf")
+.catch(e=>{window.open(doc.output("bloburl"),"_blank");showExportMsg("Direct save was blocked, so the PDF was opened in a new tab — use your browser's save/share option there.",true);});
+}catch(e){window.open(doc.output("bloburl"),"_blank");showExportMsg("Direct save was blocked, so the PDF was opened in a new tab — use your browser's save/share option there.",true);}
+}catch(e){showExportMsg("Couldn't generate the PDF: "+e.message,true);}}
+
+const calcBtn=document.getElementById("calc-btn");
+const loader=document.getElementById("loader");
+const errBox=document.getElementById("err");
+const resultBox=document.getElementById("result");
+
+calcBtn.addEventListener("click",async()=>{
+errBox.classList.add("hidden");resultBox.classList.add("hidden");
+loader.classList.remove("hidden");
+if(document.getElementById("save-chk").checked) saveBirthDetails(); else safeDel("vf-birth");
+try{
+const name=document.getElementById("name").value.trim();
+const dateStr=document.getElementById("date").value;
+const timeStr=document.getElementById("time").value;
+if(!dateStr||!timeStr) throw new Error("Please fill in birth date and birth time.");
+const citySelVal=document.getElementById("citySel").value;
+const place=document.getElementById("place").value.trim();
+const manLat=document.getElementById("lat").value.trim();
+const manLon=document.getElementById("lon").value.trim();
+const manTz=document.getElementById("tz").value.trim();
+const vfYear=parseInt(document.getElementById("year").value,10);
+if(!vfYear) throw new Error("Please enter the Varshaphal year.");
+
+let lat,lon,tz,placeLabel;
+if(manLat && manLon && manTz){
+lat=parseFloat(manLat);lon=parseFloat(manLon);tz=manTz;placeLabel=place||citySelVal||"Manual location";
+}else if(citySelVal && citySelVal!=="other" && CITY_DB[citySelVal]){
+[lat,lon,tz]=CITY_DB[citySelVal];placeLabel=citySelVal;
+}else{
+if(!place) throw new Error("Select a city, type a place name, or enter coordinates manually below.");
+let geo;
+try{
+const ctrl=new AbortController();
+const t=setTimeout(()=>ctrl.abort(),9000);
+const res=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1`,{signal:ctrl.signal});
+clearTimeout(t);
+geo=await res.json();
+}catch(netErr){
+throw new Error("Couldn't reach the location service (this often happens when the page is opened as a local file instead of a real web address). Please open this file through a hosted https:// link, or use 'Enter coordinates manually' below.");
+}
+if(!geo.results||!geo.results.length) throw new Error("Could not find that place. Try a nearby major city, or enter coordinates manually below.");
+const g=geo.results[0];
+lat=g.latitude;lon=g.longitude;tz=g.timezone;placeLabel=`${g.name}, ${g.country||""}`.trim();
+}
+
+const [by,bm,bd]=dateStr.split("-").map(Number);
+const [bh,bmin]=timeStr.split(":").map(Number);
+const naiveUTC=new Date(Date.UTC(by,bm-1,bd,bh,bmin,0));
+const offsetMin=getOffsetMinutes(naiveUTC,tz);
+const birthUTC=new Date(naiveUTC.getTime()-offsetMin*60000);
+const bJD=toJD(birthUTC.getUTCFullYear(),birthUTC.getUTCMonth()+1,birthUTC.getUTCDate(),birthUTC.getUTCHours()+birthUTC.getUTCMinutes()/60);
+
+const natalSunSid=norm(sunLongitude(bJD)-ayanamsa(bJD));
+const natalAscSid=norm(ascendant(bJD,lat,lon)-ayanamsa(bJD));
+
+const srJD=findSolarReturn(natalSunSid,vfYear,bm,bd);
+const srAscSid=norm(ascendant(srJD,lat,lon)-ayanamsa(srJD));
+const srUTC=jdToDate(srJD);
+const offsetMin2=getOffsetMinutes(srUTC,tz);
+const srLocal=new Date(srUTC.getTime()+offsetMin2*60000);
+
+const age=vfYear-by;
+const munthaIdx=(SIGNS.indexOf(signOf(natalAscSid))+age)%12;
+const munthaSign=SIGNS[munthaIdx];
+const munthaLord=LORDS[munthaIdx];
+const ascSign=signOf(srAscSid);
+const sunSign=signOf(natalSunSid);
+const varsheshwar=LORDS[SIGNS.indexOf(ascSign)];
+const cats=buildCategories(sunSign,ascSign,varsheshwar,munthaSign,munthaLord,age);
+const srMomentStr=fmtDT(srLocal,tz).replace(",", "");
+const ascStr=`${ascSign} ${degInSign(srAscSid)}°`;
+
+lastReport={name:name||"Native",vfYear,placeLabel,age,srMomentStr,ascStr,varsheshwar,munthaSign,munthaLord,cats};
+
+resultBox.innerHTML=`
+<h2>${name || "Native"}'s Varshaphal ${vfYear}</h2>
+<p class="sub">${placeLabel} · Age completing ${age}</p>
+<div class="grid">
+<div class="stat"><span class="k">Solar Return Moment</span><span class="v">${srMomentStr}</span></div>
+<div class="stat"><span class="k">Varshaphal Lagna</span><span class="v">${ascStr}</span></div>
+<div class="stat"><span class="k">Varsheshwar (Year Lord)</span><span class="v">${varsheshwar}</span></div>
+<div class="stat"><span class="k">Muntha</span><span class="v">${munthaSign} (${munthaLord})</span></div>
+</div>
+<div class="report">${catsToHTML(cats)}</div>
+<div class="export-row">
+<button type="button" class="export" id="txt-btn">Save as TXT</button>
+<button type="button" class="export" id="pdf-btn">Save as PDF</button>
+</div>`;
+document.getElementById("txt-btn").addEventListener("click",downloadTXT);
+document.getElementById("pdf-btn").addEventListener("click",downloadPDF);
+resultBox.classList.remove("hidden");
+}catch(err){errBox.textContent=err.message||"Something went wrong. Please try again.";errBox.classList.remove("hidden");}
+finally{loader.classList.add("hidden");}
+});
+
+document.getElementById("reset-btn").addEventListener("click",()=>{
+["name","date","time","place","lat","lon","tz","year"].forEach(id=>document.getElementById(id).value="");
+document.getElementById("citySel").value="";
+document.getElementById("place").classList.add("hidden");
+document.getElementById("manual-box").classList.add("hidden");
+document.getElementById("save-chk").checked=false;
+safeDel("vf-birth");
+errBox.classList.add("hidden");
+resultBox.classList.add("hidden");
+resultBox.innerHTML="";
+lastReport=null;
+});
+
+if("serviceWorker" in navigator){
+window.addEventListener("load",()=>{
+navigator.serviceWorker.register("service-worker.js").catch(()=>{});});}
+</script>
+</body>
+</html>
